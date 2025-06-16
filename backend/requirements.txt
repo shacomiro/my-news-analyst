@@ -1,3 +1,6 @@
 flask
 flask-cors
 load_dotenv
+psycopg2-binary
+Flask-SQLAlchemy
+Flask-Migrate
