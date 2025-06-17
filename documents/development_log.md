@@ -38,7 +38,7 @@
 
     -   **백엔드**: 핵심 백엔드 API (`POST /news/search`) 개발을 통해 네이버 뉴스 검색 API와 연동하고, 검색된 뉴스 기사 및 검색 기록을 데이터베이스에 저장합니다.
         -   `backend/config.py`에 네이버 API 클라이언트 ID 및 시크릿 환경 변수 추가.
-        -   `backend/app/services/naver_api_service.py` 파일 생성 및 네이버 뉴스 검색 API 호출 로직 구현 (뉴스 제목/본문 HTML 태그 제거, 연관성(`sort='sim'`) 순으로 최대 100건 뉴스 가져오기).
+        -   `backend/app/services/naver/naver_api_service.py` 파일을 생성 및 네이버 뉴스 검색 API 호출 로직 구현 (뉴스 제목/본문 HTML 태그 제거, 연관성(`sort='sim'`) 순으로 최대 100건 뉴스 가져오기).
         -   `backend/app/routes/news.py`에 `POST /news/search` 엔드포인트 구현 (요청 본문에서 `keyword` 추출, `NaverApiService` 호출, 뉴스 기사 중복 없이 DB 저장, 사용자 로그인 상태에 따른 `SearchHistory` 및 `SearchHistoryNewsArticle` 관계 저장, 적절한 예외 처리 및 응답).
     -   **프론트엔드**: 백엔드 검색 API 연동을 위한 기본 레이아웃 및 메인 페이지 준비.
         -   `Header`, `Footer`, `AppLayout` 등 기본 UI 컴포넌트 구현.
