@@ -10,6 +10,6 @@ analysis_bp = Blueprint('analysis', __name__, url_prefix='/analysis')
 # 프론트엔드가 백엔드에 뉴스 분석 요청
 # @analysis_bp.route('/request', methods=['POST'])
 # def request_analysis():
-#     return '전달된 자료(선택한 뉴스 리스트, 선택한 분석 종류)를 기반으로 구글 Gemini가 분석한 결과' 
+#     return '전달된 자료(선택한 뉴스 리스트, 선택한 분석 종류)를 기반으로 구글 Gemini가 분석한 결과'
 
 # 나머지 추가 라우팅

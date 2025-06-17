@@ -1,5 +1,6 @@
 from .. import db
 
+
 class AnalysisResultNewsArticle(db.Model):
     __tablename__ = 'analysis_result_news_articles'
 
@@ -11,4 +12,4 @@ class AnalysisResultNewsArticle(db.Model):
     )
 
     def __repr__(self):
-        return f"<AnalysisResultNewsArticle AR_ID:{self.analysis_result_id} NA_ID:{self.news_article_id}>" 
+        return f"<AnalysisResultNewsArticle AR_ID:{self.analysis_result_id} NA_ID:{self.news_article_id}>"

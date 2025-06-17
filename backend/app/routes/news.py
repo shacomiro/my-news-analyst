@@ -3,6 +3,8 @@ from flask import Blueprint
 news_bp = Blueprint('news', __name__)
 
 # 백엔드 동작 테스트용
+
+
 @news_bp.route('/')
 def hello_my_news_analyst():
     return 'This is My News Analyst Backend'

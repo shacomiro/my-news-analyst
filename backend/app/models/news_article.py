@@ -1,6 +1,7 @@
 from datetime import datetime
 from .. import db
 
+
 class NewsArticle(db.Model):
     __tablename__ = 'news_articles'
 
@@ -10,7 +11,8 @@ class NewsArticle(db.Model):
     publisher = db.Column(db.String(100), nullable=True)
     pub_date = db.Column(db.DateTime, nullable=True)
     description = db.Column(db.Text, nullable=True)
-    crawled_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    crawled_at = db.Column(db.DateTime, nullable=False,
+                           default=datetime.utcnow)
     original_json = db.Column(db.JSON, nullable=True)
 
     search_history_articles = db.relationship(
@@ -22,4 +24,4 @@ class NewsArticle(db.Model):
     )
 
     def __repr__(self):
-        return f"<NewsArticle {self.title}>" 
+        return f"<NewsArticle {self.title}>"

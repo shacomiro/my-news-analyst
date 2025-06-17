@@ -1,5 +1,6 @@
 from .. import db
 
+
 class SearchHistoryNewsArticle(db.Model):
     __tablename__ = 'search_history_news_articles'
 
@@ -12,4 +13,4 @@ class SearchHistoryNewsArticle(db.Model):
     order_in_search = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
-        return f"<SearchHistoryNewsArticle SH_ID:{self.search_history_id} NA_ID:{self.news_article_id} Order:{self.order_in_search}>" 
+        return f"<SearchHistoryNewsArticle SH_ID:{self.search_history_id} NA_ID:{self.news_article_id} Order:{self.order_in_search}>"
