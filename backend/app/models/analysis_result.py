@@ -1,5 +1,5 @@
 from datetime import datetime
-from .. import db
+from app.extensions import db
 
 
 class AnalysisResult(db.Model):
