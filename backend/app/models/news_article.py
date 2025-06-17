@@ -13,7 +13,6 @@ class NewsArticle(db.Model):
     description = db.Column(db.Text, nullable=True)
     crawled_at = db.Column(db.DateTime, nullable=False,
                            default=datetime.utcnow)
-    original_json = db.Column(db.JSON, nullable=True)
 
     search_history_articles = db.relationship(
         'SearchHistoryNewsArticle', backref='news_article', lazy=True, cascade="all, delete-orphan"

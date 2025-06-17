@@ -22,16 +22,15 @@
 -   **설명**: 네이버 검색 API를 통해 수집된 뉴스 기사 정보를 저장합니다. 이 테이블의 `title`과 `description`은 `<b>` 태그가 제거된 클린(Clean) 텍스트입니다.
 -   **용도**: 뉴스의 고유 정보 관리, 분석 대상 뉴스.
 
-| 컬럼명          | 데이터 타입    | 제약 조건                   | 설명                                          |
-| :-------------- | :------------- | :-------------------------- | :-------------------------------------------- |
-| `id`            | `SERIAL`       | `PK`, `Auto-increment`      | 뉴스 기사 고유 ID                             |
-| `title`         | `VARCHAR(500)` | `NOT NULL`                  | **`<b>` 태그가 제거된 클린 뉴스 기사 제목**   |
-| `link`          | `VARCHAR(500)` | `NOT NULL`, `Unique`        | 원본 뉴스 기사 URL (고유값)                   |
-| `publisher`     | `VARCHAR(100)` | `NULLABLE`                  | 발행 언론사명                                 |
-| `pub_date`      | `TIMESTAMP`    | `NULLABLE`                  | 발행 일자 (API 응답 문자열 파싱)              |
-| `description`   | `TEXT`         | `NULLABLE`                  | **`<b>` 태그가 제거된 클린 뉴스 본문 요약**   |
-| `crawled_at`    | `TIMESTAMP`    | `NOT NULL`, `DEFAULT NOW()` | 서비스에 의해 수집된 일시                     |
-| `original_json` | `JSONB`        | `NULLABLE`                  | 네이버 API 원본 응답 데이터 (첫 수집 시 저장) |
+| 컬럼명        | 데이터 타입    | 제약 조건                   | 설명                                        |
+| :------------ | :------------- | :-------------------------- | :------------------------------------------ |
+| `id`          | `SERIAL`       | `PK`, `Auto-increment`      | 뉴스 기사 고유 ID                           |
+| `title`       | `VARCHAR(500)` | `NOT NULL`                  | **`<b>` 태그가 제거된 클린 뉴스 기사 제목** |
+| `link`        | `VARCHAR(500)` | `NOT NULL`, `Unique`        | 원본 뉴스 기사 URL (고유값)                 |
+| `publisher`   | `VARCHAR(100)` | `NULLABLE`                  | 발행 언론사명                               |
+| `pub_date`    | `TIMESTAMP`    | `NULLABLE`                  | 발행 일자 (API 응답 문자열 파싱)            |
+| `description` | `TEXT`         | `NULLABLE`                  | **`<b>` 태그가 제거된 클린 뉴스 본문 요약** |
+| `crawled_at`  | `TIMESTAMP`    | `NOT NULL`, `DEFAULT NOW()` | 서비스에 의해 수집된 일시                   |
 
 ### 1.3. `search_histories` 테이블 (검색 기록)
 

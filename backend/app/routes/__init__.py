@@ -6,6 +6,6 @@ from .analysis import analysis_bp
 
 
 def register_blueprints(_app):
-    _app.register_blueprint(news_bp)
+    _app.register_blueprint(news_bp, url_prefix='/news')
     _app.register_blueprint(auth_bp)
     _app.register_blueprint(analysis_bp)
