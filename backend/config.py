@@ -14,6 +14,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # SQLAlchemy 이벤트 시스템 비활성화 (성능 향상)
 
+    # Naver API 설정
+    NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID')
+    NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET')
+
 
 class DevelopmentConfig(Config):
     DEBUG = True  # 개발 환경 디버그 모드 활성화

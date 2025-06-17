@@ -4,3 +4,5 @@ load_dotenv
 psycopg2-binary
 Flask-SQLAlchemy
 Flask-Migrate
+requests
+beautifulsoup4
