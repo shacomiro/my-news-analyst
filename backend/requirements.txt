@@ -1,8 +1,9 @@
-flask
-flask-cors
-load_dotenv
-psycopg2-binary
-Flask-SQLAlchemy
-Flask-Migrate
-requests
-beautifulsoup4
+flask==3.1.1
+flask-cors==6.0.1
+python-dotenv==1.1.0
+psycopg2-binary==2.9.10
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.1.0
+requests==2.32.4
+beautifulsoup4==4.13.4
+google-genai==1.20.0
