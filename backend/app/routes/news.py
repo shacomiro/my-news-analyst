@@ -8,7 +8,7 @@ from app.models.search_history import SearchHistory
 from app.models.search_history_news_article import SearchHistoryNewsArticle
 from app.services.naver.naver_api_service import NaverApiService
 
-news_bp = Blueprint('news', __name__)
+news_bp = Blueprint('news', __name__, url_prefix='/news')
 
 # 백엔드 동작 테스트용
 
