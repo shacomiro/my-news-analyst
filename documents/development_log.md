@@ -71,6 +71,45 @@
             -   사용자의 커스텀 계획
                 -   뉴스 검색 결과 페이지에서 분석 요청 버튼을 누르면 최종적으로 분석 결과 페이지에서 분석 결과를 볼 수 있어야 한다. 그런데 가장 큰 문제는 분석에 시간이 소요된다는 것이다. 즉, 사용자는 분석 결과 페이지에서 분석이 끝날 때까지 대기해야 한다. 사용자 경험을 위해 아직 분석중이라는 표시를 화면에 띄워야 하며, 페이지를 이동하면서 요청한 분석 결과가 시간이 지나 응답으로 돌아오면 이를 화면에 갱신하며 분석중 표시를 분석 결과로 대체해야 한다.
                 -   백엔드에서 넘겨받은 분석 결과 텍스트는 마크다운 형식이므로, 이를 HTML 페이지에 표현하기 위해 적절한 라이브러리를 선택하여 변환 및 표시해야 한다.
+    -   **결과**:
+        -   **백엔드**: 뉴스 분석 백엔드 API (`POST /analysis/`) 개발 완료.
+            -   `backend/app/services/google/google_gemini.py` 파일 수정 완료 (뉴스 데이터를 JSON 형식으로 가공 및 프롬프트에 검색 키워드 전달 기능 구현).
+            -   `backend/app/services/analytics/news_analytics.py` 파일 수정 완료 (SearchHistoryNewsArticle과 NewsArticle 테이블 조인을 통해 뉴스 데이터 조회, Google Gemini 모델 호출 및 AI 분석 결과 DB 저장 로직 구현).
+            -   `GoogleGemini` 인스턴스를 애플리케이션 시작 시점에 단 한 번만 생성하여 `NewsAnalyticsService`에 주입하는 방식으로 메모리 및 성능 효율성 개선.
+            -   AI 분석 결과(JSON 문자열)를 파이썬 딕셔너리로 올바르게 파싱하여 `JSONB` 형식의 DB 컬럼에 저장하는 로직 구현 및 관련 오류 해결.
+            -   비동기 분석 (백그라운드 스레드) 및 프론트엔드-백엔드 간 폴링(polling) 통신 모델 확정.
+        -   **프론트엔드**: (아직 구현되지 않음)
+            -   뉴스 분석 결과를 표시할 `AnalysisResultPage` (`/analysis/{analysis_id}`) 페이지의 UI/UX 요구사항 및 구현 목록 정의 완료.
+            -   프론트엔드에서 AI 분석 결과를 표시하기 위한 마크다운 렌더링 라이브러리 활용 결정.
+            -   분석 진행 상태 (로딩 스켈레톤 UI, "분석중...") 표시 및 폴링을 통한 분석 완료 대기 로직 구현 필요.
+            -   **잔여 문제**: 프론트엔드 `AnalysisResultPage` 구현 및 백엔드와의 API 연동.
+
+## 2025년 6월 19일
+
+-   **목표**:
+    -   **백엔드 분석 요청 시 선택된 뉴스만 분석하는 기능 추가**
+        -   현재 구현된 기능은 뉴스 검색 시 조회된 모든 뉴스를 일괄 분석하는 기능.
+        -   프론트엔드에서 사용자가 원하는 뉴스들을 선택해서 요청할 경우, 해당 뉴스들만 필터링하여 분석할 수 있도록 백엔드 코드를 리팩토링 해야함.
+    -   **뉴스 분석 프론트엔드 UI/UX 개발**:
+        -   `frontend/src/components/pages/AnalysisResultPage.js` 컴포넌트 생성 및 구현.
+        -   **페이지 라우팅 설정**: React Router를 사용하여 `/analysis/:analysis_id` 경로 라우팅 설정. (`IA.md` - 7. URL 구조)
+        -   **기본 레이아웃 적용**: `AppLayout` 컴포넌트를 사용하여 `Header`, `MainContentWrapper`, `Footer` 포함. (`design_principles.md` - 4.1. AppLayout)
+        -   **분석 진행 상태 UI 구현**:
+            -   `AnalysisStatusDisplay` 컴포넌트(혹은 유사 기능)를 구현하여 "뉴스 분석 중..." 문구 표시. (`design_principles.md` - 3.3; `IA.md` - 5.3)
+            -   `SkeletonLoader` 컴포넌트를 사용하여 분석 결과 영역에 스켈레톤 UI(`bg-gray-200 animate-pulse`) 표시. (`design_principles.md` - 5. 인터랙션 패턴)
+        -   **백엔드 API 연동 (폴링)**:
+            -   페이지 로드 시 `GET /analysis/:analysis_id` API를 호출하고, `status`가 'pending'인 경우 주기적으로 (예: 2~5초 간격) 폴링하여 `status`가 'completed' 또는 'failed'로 변경될 때까지 대기하는 로직 구현. (`development_log.md` - 2025년 6월 18일 결과)
+            -   분석 완료 또는 실패 시 폴링 중단.
+        -   **분석 결과 표시 UI 구현**:
+            -   `AnalysisResultDisplay` 컴포넌트(혹은 유사 기능)를 구현하여 백엔드에서 받은 분석 결과를 파싱하여 표시. (`IA.md` - 8.4)
+            -   **분석 개요 정보 표시**: 분석 키워드, 선택 뉴스 수, 분석 요청일, 분석 완료일 등. (`design_principles.md` - 3.3; `IA.md` - 5.3)
+            -   **마크다운 렌더링**: 백엔드에서 받은 `result_content.text` (또는 `result_content.report_text` 등) 마크다운 텍스트를 `react-markdown` 라이브러리 등을 사용하여 HTML로 변환하여 표시. (`development_log.md` - 2025년 6월 18일 결과)
+            -   각 분석 종류별(키워드 출현 빈도, 연관 키워드, 이슈 생명 주기, 주제 그룹핑) 결과 내용을 적절한 섹션으로 구분하여 표시.
+        -   **오류 처리 UI**: 분석 실패 시 "분석에 실패했습니다. 잠시 후 다시 시도하거나, 다른 뉴스를 선택해주세요." 메시지 표시. (`usecase.md` - E2.2)
+        -   **UI/UX 원칙 적용**:
+            -   `design_principles.md`에 명시된 미니멀리즘, 모노크롬 스타일, 타이포그래피, 반응형 디자인 원칙을 페이지 전체에 적용.
+            -   Tailwind CSS 클래스(`max-w-screen-xl mx-auto px-4 md:px-6 lg:px-8`)를 사용하여 콘텐츠 영역 중앙 정렬 및 여백 확보.
+        -   **잔여 문제**: 백엔드 API 연동 테스트 및 모든 분석 종류에 대한 UI 표시 검증.
 
 <!--1. news_analytics.py는 넘겨받은 검색 결과 데이터를 활용해 분석 결과 데이터(진행중 상태)를 생성한다. 즉시 프론트엔드에게 분석 결과 id를 넘겨서 프론트엔드가 주기적으로 확인할 수 있도록 한다.
 2. news_analytics.py가 새로운 스레드를 생성한다.
