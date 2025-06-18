@@ -49,15 +49,15 @@
 -   **설명**: 특정 검색 기록(`search_histories`)에 대해 수행된 AI 분석 결과를 저장합니다.
 -   **용도**: 분석 결과 확인 및 회원의 과거 분석 기록 재조회.
 
-| 컬럼명              | 데이터 타입   | 제약 조건                                | 설명                                                                        |
-| :------------------ | :------------ | :--------------------------------------- | :-------------------------------------------------------------------------- |
-| `id`                | `SERIAL`      | `PK`, `Auto-increment`                   | 분석 결과 고유 ID                                                           |
-| `search_history_id` | `INTEGER`     | `FK` (`search_histories.id`), `NOT NULL` | 연결된 검색 기록 ID                                                         |
-| `analysis_type`     | `VARCHAR(50)` | `NOT NULL`                               | 분석 종류 (예: 'summary', 'sentiment', 'keyword_extraction', 'relatedness') |
-| `requested_at`      | `TIMESTAMP`   | `NOT NULL`, `DEFAULT NOW()`              | 분석 요청 일시                                                              |
-| `completed_at`      | `TIMESTAMP`   | `NULLABLE`                               | 분석 완료 일시 (`NULL`이면 진행 중 또는 실패)                               |
-| `result_content`    | `JSONB`       | `NULLABLE`                               | AI 분석 결과 내용 (JSON 형식)                                               |
-| `status`            | `VARCHAR(20)` | `NOT NULL`, `DEFAULT 'pending'`          | 분석 상태 ('pending', 'completed', 'failed')                                |
+| 컬럼명              | 데이터 타입   | 제약 조건                                | 설명                                                                                            |
+| :------------------ | :------------ | :--------------------------------------- | :---------------------------------------------------------------------------------------------- |
+| `id`                | `SERIAL`      | `PK`, `Auto-increment`                   | 분석 결과 고유 ID                                                                               |
+| `search_history_id` | `INTEGER`     | `FK` (`search_histories.id`), `NOT NULL` | 연결된 검색 기록 ID                                                                             |
+| `analysis_type`     | `VARCHAR(50)` | `NOT NULL`                               | 분석 종류 (예: 'keyword_frequency', 'keyword_relatedness', 'issue_lifecycle', 'topic_grouping') |
+| `requested_at`      | `TIMESTAMP`   | `NOT NULL`, `DEFAULT NOW()`              | 분석 요청 일시                                                                                  |
+| `completed_at`      | `TIMESTAMP`   | `NULLABLE`                               | 분석 완료 일시 (`NULL`이면 진행 중 또는 실패)                                                   |
+| `result_content`    | `JSONB`       | `NULLABLE`                               | AI 분석 결과 내용 (JSON 형식)                                                                   |
+| `status`            | `VARCHAR(20)` | `NOT NULL`, `DEFAULT 'pending'`          | 분석 상태 ('pending', 'completed', 'failed')                                                    |
 
 ## 2. 관계 테이블 (Join Tables for Many-to-Many Relationships)
 
