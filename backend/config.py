@@ -18,6 +18,9 @@ class Config:
     NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID')
     NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET')
 
+    # Google Gemini 설정
+    GOOGLE_GEMINI_API_KEY = os.getenv('GOOGLE_GEMINI_API_KEY')
+
 
 class DevelopmentConfig(Config):
     DEBUG = True  # 개발 환경 디버그 모드 활성화
