@@ -1,0 +1,148 @@
+import threading
+import json
+from datetime import datetime
+
+from flask import Flask, current_app
+from sqlalchemy.orm import Session
+
+from app.services.google.google_gemini import GoogleGemini
+from app.models.analysis_result import AnalysisResult
+from app.models.news_article import NewsArticle
+from app.models.search_history import SearchHistory
+from app.models.search_history_news_article import SearchHistoryNewsArticle
+
+
+class NewsAnalyticsService:
+    def __init__(self, db_session: Session, flask_app: Flask):
+        # 데이터베이스 세션과 Flask 앱 인스턴스를 주입받아 저장합니다.
+        self.db_session = db_session
+        self.flask_app = flask_app
+        self.gemini_service = GoogleGemini()
+
+    # 뉴스 분석 요청을 시작하고, 진행 중인 분석 결과를 DB에 기록한 후 분석 ID를 반환. 실제 AI 분석은 백그라운드 스레드에서 수행.
+    def request_news_analysis(self, search_history_id: int, analysis_type: str, user_id: int = None) -> int:
+        new_analysis = AnalysisResult(
+            search_history_id=search_history_id,
+            analysis_type=analysis_type,
+            requested_at=datetime.utcnow(),
+            status='pending'
+        )
+        self.db_session.add(new_analysis)
+        self.db_session.commit()
+        self.db_session.refresh(new_analysis)  # DB에서 생성된 ID를 가져오기 위해 refresh
+
+        analysis_result_id = new_analysis.id
+
+        # 백그라운드 스레드 시작
+        thread = threading.Thread(
+            target=self._perform_analysis_in_background,
+            args=(analysis_result_id,)
+        )
+        thread.daemon = True  # 메인 스레드 종료 시 서브 스레드도 함께 종료되도록 설정
+        thread.start()
+
+        return analysis_result_id
+
+    # 주어진 분석 ID에 해당하는 분석 결과를 DB에서 조회하여 반환합니다.
+    def get_analysis_result(self, analysis_id: int) -> dict:
+
+        analysis_record = self.db_session.query(
+            AnalysisResult).get(analysis_id)
+
+        if analysis_record:
+            return {
+                "id": analysis_record.id,
+                "search_history_id": analysis_record.search_history_id,
+                "analysis_type": analysis_record.analysis_type,
+                "requested_at": analysis_record.requested_at.isoformat(),
+                "completed_at": analysis_record.completed_at.isoformat() if analysis_record.completed_at else None,
+                "result_content": analysis_record.result_content,
+                "status": analysis_record.status
+            }
+        return None  # 분석 결과를 찾지 못한 경우 None 반환
+
+    # 백그라운드 스레드에서 실제 AI 분석을 수행하고 DB를 업데이트하는 내부 함수. Flask 애플리케이션 컨텍스트 내에서 실행되어야 함.
+    def _perform_analysis_in_background(self, analysis_result_id: int):
+        with self.flask_app.app_context():
+            analysis_record = self.db_session.query(
+                AnalysisResult).get(analysis_result_id)
+            if not analysis_record:
+                current_app.logger.error(
+                    f"AnalysisResult with ID {analysis_result_id} not found for background analysis.")
+                return
+
+            try:
+                # 1. 뉴스 기사 데이터 조회
+                # SearchHistoryNewsArticle과 NewsArticle 테이블을 조인하여 뉴스 기사 데이터 가져오기
+                news_articles_query = self.db_session.query(NewsArticle).join(
+                    SearchHistoryNewsArticle,
+                    NewsArticle.id == SearchHistoryNewsArticle.news_article_id
+                ).filter(
+                    SearchHistoryNewsArticle.search_history_id == analysis_record.search_history_id
+                )
+
+                news_articles = news_articles_query.all()
+
+                if not news_articles:
+                    raise ValueError(
+                        f"No news articles found for search_history_id: {analysis_record.search_history_id}")
+
+                news_articles_data = []
+                for article in news_articles:
+                    news_article_dict = {
+                        "id": article.id,
+                        "title": article.title,
+                        "link": article.link,
+                        "publisher": article.publisher,
+                        "pub_date": article.pub_date.isoformat() if article.pub_date else None,
+                        "description": article.description,
+                        "crawled_at": article.crawled_at.isoformat() if article.crawled_at else None
+                    }
+                    news_articles_data.append(news_article_dict)
+
+                # search_history에서 keyword 가져오기
+                search_history = self.db_session.query(
+                    SearchHistory).get(analysis_record.search_history_id)
+                if not search_history:
+                    raise ValueError(
+                        f"Search history not found for ID: {analysis_record.search_history_id}")
+
+                analysis_keyword = search_history.keyword  # 검색 키워드 가져오기
+
+                # 2. Google Gemini 서비스 호출
+                ai_analysis_content = self.gemini_service.analyze_news(
+                    news_articles=news_articles_data,
+                    keyword=analysis_keyword,
+                    analysis_type=analysis_record.analysis_type,
+                )
+
+                # 3. 분석 결과 DB 업데이트 (성공)
+                # Gemini에서 반환된 JSON 문자열을 파이썬 딕셔너리로 변환하여 저장
+                try:
+                    parsed_ai_content = json.loads(ai_analysis_content)
+                except json.JSONDecodeError as e:
+                    # JSON 파싱 실패 시, 원시 텍스트와 함께 오류 정보 저장
+                    current_app.logger.error(f"Failed to parse AI analysis content to JSON: {e}. Content: {ai_analysis_content[:200]}...")
+                    parsed_ai_content = {"error": "JSON 파싱 실패", "raw_content": ai_analysis_content}
+
+                analysis_record.result_content = parsed_ai_content # 파싱된 딕셔너리를 바로 저장
+                analysis_record.status = 'completed'
+                analysis_record.completed_at = datetime.utcnow()
+                self.db_session.add(analysis_record)
+                self.db_session.commit()
+
+            except Exception as e:
+                # 4. 분석 결과 DB 업데이트 (실패)
+                current_app.logger.error(
+                    f"AI analysis failed for analysis_id {analysis_result_id}: {e}", exc_info=True)
+                self.db_session.rollback()  # 오류 발생 시 롤백
+
+                analysis_record.status = 'failed'
+                analysis_record.completed_at = datetime.utcnow()
+                analysis_record.result_content = {
+                    "error": str(e), "message": "AI 분석 중 오류가 발생했습니다."}
+                self.db_session.add(analysis_record)
+                self.db_session.commit()
+
+            finally:
+                self.db_session.remove()  # 스레드 종료 시 세션 정리
