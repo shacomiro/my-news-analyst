@@ -10,12 +10,13 @@ analysis_bp = Blueprint('analysis', __name__, url_prefix='/analysis')
 @analysis_bp.route('/', methods=['POST'])
 def request_analysis():
     data = request.get_json()
-    if not data or 'search_history_id' not in data or 'analysis_type' not in data:
-        return jsonify({'message': 'Missing search_history_id or analysis_type'}), 400
+    if not data or 'search_history_id' not in data or 'analysis_type' not in data or 'selected_news_article_ids' not in data:
+        return jsonify({'message': 'Missing search_history_id, analysis_type, or selected_news_article_ids'}), 400
 
     search_history_id = data['search_history_id']
     analysis_type = data['analysis_type']
-    user_id = data.get('user_id')  # Optional, if user is logged in
+    selected_news_article_ids = data['selected_news_article_ids']
+    user_id = data.get('user_id')  # 로그인 했을 경우에 사용
 
     # NewsAnalyticsService 인스턴스 생성 (db.session과 current_app을 전달)
     news_analytics_service = NewsAnalyticsService(
@@ -25,6 +26,7 @@ def request_analysis():
         analysis_id = news_analytics_service.request_news_analysis(
             search_history_id=search_history_id,
             analysis_type=analysis_type,
+            selected_news_article_ids=selected_news_article_ids,
             user_id=user_id
         )
         return jsonify({'message': 'Analysis request received', 'analysis_id': analysis_id}), 202

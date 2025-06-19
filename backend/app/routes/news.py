@@ -100,7 +100,7 @@ def search_news():
                 "description": article.description
             })
 
-        return jsonify({'message': 'News search successful', 'articles': response_articles}), 200
+        return jsonify({'message': 'News search successful', 'articles': response_articles, 'search_history_id': new_search_history.id}), 200
 
     except Exception as e:
         db.session.rollback()  # 오류 발생 시 트랜잭션 롤백

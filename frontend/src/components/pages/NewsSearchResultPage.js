@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import NewsCard from '../news/NewsCard'; // NewsCard 컴포넌트 임포트
 
 const NewsSearchResultPage = () => {
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const keyword = searchParams.get('keyword') || '';
 
     const [allNewsArticles, setAllNewsArticles] = useState([]); // 모든 뉴스 데이터를 저장
@@ -15,6 +16,7 @@ const NewsSearchResultPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [hasMore, setHasMore] = useState(true); // '더 보기' 버튼 활성화 여부
     const [error, setError] = useState(null);
+    const [searchHistoryId, setSearchHistoryId] = useState(null);
 
     // 필터링된 뉴스를 관리하는 useEffect 추가
     useEffect(() => {
@@ -36,6 +38,7 @@ const NewsSearchResultPage = () => {
             setDisplayedNewsArticles([]);
             setSelectedNewsIds(new Set());
             setSelectedNewsCount(0);
+            setSearchHistoryId(null);
 
             if (!keyword.trim()) {
                 setIsLoading(false);
@@ -57,22 +60,23 @@ const NewsSearchResultPage = () => {
                 }
 
                 const data = await response.json();
-                console.log('API 응답 데이터:', data); // 이 로그는 남겨두겠습니다. 전체 응답 구조 확인용.
+                console.log('API 응답 데이터:', data);
 
                 if (data && Array.isArray(data.articles)) {
-                    // 백엔드에서 받은 뉴스 데이터를 설정
+                    setSearchHistoryId(data.search_history_id);
+
                     const newsFromBackend = data.articles.map((article) => {
                         return {
-                            id: article.link, // 링크를 고유 ID로 사용 (실제 서비스에서는 DB ID를 사용)
+                            id: article.id,
                             title: article.title,
                             link: article.link,
-                            pubDate: article.pubDate, // pub_date -> pubDate로 수정
+                            pubDate: article.pubDate,
                             description: article.description,
                         };
                     });
 
                     setAllNewsArticles(newsFromBackend);
-                    setDisplayedNewsArticles(newsFromBackend.slice(0, 20)); // 초기 20개만 표시
+                    setDisplayedNewsArticles(newsFromBackend.slice(0, 20));
                     setHasMore(newsFromBackend.length > 20);
                 } else {
                     console.warn('API 응답에 articles 배열이 없거나 형식이 올바르지 않습니다:', data);
@@ -84,7 +88,7 @@ const NewsSearchResultPage = () => {
             } catch (err) {
                 console.error('뉴스 검색 오류:', err);
                 setError(err.message || '뉴스 데이터를 불러오는 데 실패했습니다.');
-                setAllNewsArticles([]); // 오류 발생 시 데이터 초기화
+                setAllNewsArticles([]);
                 setDisplayedNewsArticles([]);
                 setHasMore(false);
             } finally {
@@ -122,13 +126,43 @@ const NewsSearchResultPage = () => {
         }
     };
 
-    const handleAnalyzeNews = () => {
-        if (selectedNewsCount > 0 && analysisType) {
-            alert(`선택된 뉴스 ${selectedNewsCount}개를 ${analysisType} 분석 요청합니다.`);
-            // 실제 백엔드 분석 API 호출 로직이 여기에 들어갈 예정입니다.
-            // 예: navigate(`/analysis/${analysisId}`);
+    const handleAnalyzeNews = async () => {
+        if (selectedNewsCount > 0 && analysisType && searchHistoryId) {
+            const selectedNewsArticleIds = Array.from(selectedNewsIds);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/analysis/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        search_history_id: searchHistoryId,
+                        analysis_type: analysisType,
+                        selected_news_article_ids: selectedNewsArticleIds,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || '뉴스 분석 요청에 실패했습니다.');
+                }
+
+                const data = await response.json();
+                const analysisId = data.analysis_id;
+
+                alert(`선택된 뉴스 ${selectedNewsCount}개를 ${analysisType} 분석 요청했습니다. (분석 ID: ${analysisId})`);
+                navigate(`/analysis/${analysisId}`);
+            } catch (error) {
+                console.error('뉴스 분석 요청 오류:', error);
+                alert(`뉴스 분석 요청 중 오류가 발생했습니다: ${error.message}`);
+            }
+        } else if (selectedNewsCount === 0) {
+            alert('분석할 뉴스를 1개 이상 선택해주세요.');
+        } else if (!analysisType) {
+            alert('분석 종류를 선택해주세요.');
         } else {
-            alert('분석할 뉴스를 1개 이상 선택하거나 분석 종류를 선택해주세요.');
+            alert('검색 기록 ID를 찾을 수 없습니다. 다시 검색해 보세요.');
         }
     };
 
@@ -143,7 +177,7 @@ const NewsSearchResultPage = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">검색 결과: "{keyword}"</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">"{keyword}" 검색 결과</h1>
 
             {error && <p className="text-red-500 text-center mb-4">오류: {error}</p>}
 
@@ -181,17 +215,17 @@ const NewsSearchResultPage = () => {
                             onChange={(e) => setAnalysisType(e.target.value)}
                         >
                             <option value="">분석 종류 선택</option>
-                            <option value="summary">뉴스 요약</option>
-                            <option value="sentiment">감성 분석</option>
-                            <option value="keyword_extraction">키워드 추출</option>
-                            <option value="relatedness">연관성 분석</option>
+                            <option value="01_keyword_frequency_trend_analysis">키워드 출현 빈도 및 트렌드 분석</option>
+                            <option value="02_keyword_relatedness_analysis">관련 키워드 연관성 분석</option>
+                            <option value="03_issue_lifecycle_analysis">이슈 발생 및 소멸 주기 분석</option>
+                            <option value="04_topic_grouping_keyword_extraction">주제별 뉴스 그룹핑 및 핵심어 추출</option>
                         </select>
                         <button
                             onClick={handleAnalyzeNews}
                             className={`w-full md:w-auto px-6 py-2 rounded-md font-semibold transition-colors duration-200 ${
                                 selectedNewsCount > 0 && analysisType ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             }`}
-                            disabled={!(selectedNewsCount > 0 && analysisType)}
+                            disabled={!(selectedNewsCount > 0 && analysisType && searchHistoryId)}
                         >
                             뉴스 분석
                         </button>
