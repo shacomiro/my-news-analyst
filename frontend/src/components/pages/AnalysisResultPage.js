@@ -44,8 +44,8 @@ const AnalysisResultPage = () => {
         // 컴포넌트 마운트 시 최초 한 번 호출
         fetchAnalysisResult();
 
-        // 2초마다 폴링 설정
-        intervalId = setInterval(fetchAnalysisResult, 2000);
+        // 5초마다 폴링 설정
+        intervalId = setInterval(fetchAnalysisResult, 5000);
 
         // 컴포넌트 언마운트 시 인터벌 클리어
         return () => {
