@@ -56,7 +56,7 @@
 | `analysis_type`     | `VARCHAR(50)` | `NOT NULL`                               | 분석 종류 (예: 'keyword_frequency', 'keyword_relatedness', 'issue_lifecycle', 'topic_grouping') |
 | `requested_at`      | `TIMESTAMP`   | `NOT NULL`, `DEFAULT NOW()`              | 분석 요청 일시                                                                                  |
 | `completed_at`      | `TIMESTAMP`   | `NULLABLE`                               | 분석 완료 일시 (`NULL`이면 진행 중 또는 실패)                                                   |
-| `result_content`    | `JSONB`       | `NULLABLE`                               | AI 분석 결과 내용 (JSON 형식)                                                                   |
+| `result_content`    | `TEXT`       | `NULLABLE`                               | AI 분석 결과 내용 (TEXT 형식)                                                                   |
 | `status`            | `VARCHAR(20)` | `NOT NULL`, `DEFAULT 'pending'`          | 분석 상태 ('pending', 'completed', 'failed')                                                    |
 
 ## 2. 관계 테이블 (Join Tables for Many-to-Many Relationships)

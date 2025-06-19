@@ -117,15 +117,8 @@ class NewsAnalyticsService:
                 )
 
                 # 3. 분석 결과 DB 업데이트 (성공)
-                # Gemini에서 반환된 JSON 문자열을 파이썬 딕셔너리로 변환하여 저장
-                try:
-                    parsed_ai_content = json.loads(ai_analysis_content)
-                except json.JSONDecodeError as e:
-                    # JSON 파싱 실패 시, 원시 텍스트와 함께 오류 정보 저장
-                    current_app.logger.error(f"Failed to parse AI analysis content to JSON: {e}. Content: {ai_analysis_content[:200]}...")
-                    parsed_ai_content = {"error": "JSON 파싱 실패", "raw_content": ai_analysis_content}
-
-                analysis_record.result_content = parsed_ai_content # 파싱된 딕셔너리를 바로 저장
+                # Store the AI analysis content directly as text
+                analysis_record.result_content = ai_analysis_content  # Store raw text
                 analysis_record.status = 'completed'
                 analysis_record.completed_at = datetime.utcnow()
                 self.db_session.add(analysis_record)
@@ -139,8 +132,8 @@ class NewsAnalyticsService:
 
                 analysis_record.status = 'failed'
                 analysis_record.completed_at = datetime.utcnow()
-                analysis_record.result_content = {
-                    "error": str(e), "message": "AI 분석 중 오류가 발생했습니다."}
+                # Store error message as text
+                analysis_record.result_content = f"AI 분석 중 오류가 발생했습니다: {str(e)}"
                 self.db_session.add(analysis_record)
                 self.db_session.commit()
 

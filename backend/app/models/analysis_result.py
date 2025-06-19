@@ -12,7 +12,7 @@ class AnalysisResult(db.Model):
     requested_at = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime, nullable=True)
-    result_content = db.Column(db.JSON, nullable=True)
+    result_content = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), nullable=False, default='pending')
 
     analysis_result_articles = db.relationship(
