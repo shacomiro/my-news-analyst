@@ -110,10 +110,30 @@
             -   `design_principles.md`에 명시된 미니멀리즘, 모노크롬 스타일, 타이포그래피, 반응형 디자인 원칙을 페이지 전체에 적용.
             -   Tailwind CSS 클래스(`max-w-screen-xl mx-auto px-4 md:px-6 lg:px-8`)를 사용하여 콘텐츠 영역 중앙 정렬 및 여백 확보.
         -   **잔여 문제**: 백엔드 API 연동 테스트 및 모든 분석 종류에 대한 UI 표시 검증.
+-   **결과**:
+    -   **백엔드**: 사용자가 선택한 뉴스만 분석하는 기능 구현 완료.
+        -   `backend/app/routes/analysis.py`에서 `POST /analysis` 요청 시 `selected_news_article_ids`를 받아 `NewsAnalyticsService`에 전달하도록 수정 완료.
+        -   `backend/app/services/analytics/news_analytics.py`에서 `request_news_analysis` 함수가 `selected_news_article_ids`를 활용하여 뉴스 기사를 필터링하고, `analysis_result_news_articles` 테이블에 분석 결과와 선택된 뉴스 기사 간의 관계를 저장하는 로직 구현 완료.
+        -   AI 응답 형식 변경에 따른 DB 스키마(`backend/app/models/analysis_result.py`의 `result_content` 컬럼 타입을 `db.JSON`에서 `db.Text`로 변경) 및 관련 코드(`backend/app/services/analytics/news_analytics.py`에서 AI 응답 JSON 파싱 로직 제거 및 텍스트 저장, `analysis_keyword`와 `selected_news_count`를 최상위 속성으로 반환) 수정 완료.
+        -   관련 DB 마이그레이션(`flask db stamp head`, `flask db migrate`, `flask db upgrade`) 완료.
+        -   프롬프트 파일(`backend/app/services/google/prompt/`)에서 JSON 형식 요구사항 제거 완료.
+        -   `backend/app/routes/news.py`의 `/news/search` 엔드포인트에서 `search_history_id`를 응답으로 반환하도록 수정 완료.
+    -   **프론트엔드**: 뉴스 분석 결과 페이지 UI/UX 개발 완료.
+        -   `frontend/src/components/pages/AnalysisResultPage.js` 컴포넌트 생성 및 주요 UI/UX 구현 완료.
+        -   `frontend/src/App.js`에 `/analysis/:analysis_id` 라우트 연결 완료.
+        -   "뉴스 분석 중..." 안내 카드 및 스켈레톤 UI 구현 완료.
+        *   백엔드 API 연동을 위한 폴링 로직 구현 완료 (폴링 간격 2초에서 5초로 변경).
+        -   `react-markdown`을 이용한 분석 결과 마크다운 텍스트 렌더링 구현 완료.
+        -   분석 개요 정보(`analysis_keyword`, `selected_news_count`, `requested_at`, `completed_at`) 표시 기능 구현 완료.
+        -   **UI/UX 개선 사항**:
+            -   `AnalysisResultPage`의 메인 콘텐츠 폭을 `NewsSearchResultPage`와 동일하게 통일, 로딩 및 스켈레톤 UI의 폭이 콘텐츠 양에 따라 좁아지는 문제 해결 완료 (`MainContentWrapper.js`에서 `main` 태그에 `w-full` 적용 및 모든 내부 카드 `div`에 `col-span-full` 적용).
+            -   이미 분석이 완료된 결과 조회 시 로딩창이 순간적으로 나타났다가 사라지는 문제 해결 완료 (조건부 렌더링 순서 변경).
+            -   분석 실패 시 사용자에게 오류 메시지 표시 구현 완료.
 
-<!--1. news_analytics.py는 넘겨받은 검색 결과 데이터를 활용해 분석 결과 데이터(진행중 상태)를 생성한다. 즉시 프론트엔드에게 분석 결과 id를 넘겨서 프론트엔드가 주기적으로 확인할 수 있도록 한다.
-2. news_analytics.py가 새로운 스레드를 생성한다.
-3. 스레드는 현재 분석 결과에 연결된 뉴스 검색 결과를 통해 구글 gemini에게 넘겨야 하는 뉴스 데이터 리스트와 분석 요청 종류를 확인한다.
-4. 확인된 데이터를 구글 gamini에게 넘기고, 시간이 흘러 응답을 받는다.
-5. 응답된 데이터를 받아 현재 스레드가 기억하는 분석 결과를 실제 DB에 갱신한다. 분석 결과를 추가하고, 상태를 완료(혹은 실패)로 바꾼 후 작업을 끝낸다.
-6. 2~5 과정 동안 프론트엔드는 폴링을 통해 1번 과정에서 생성된 분석 결과가 진행중이면 계속해서 주기적으로 확인하면서 대기중에 있다. 5번 과정이 끝난 후 확인하면 완료 상태이므로, 이때 프론트엔드는 완성된 분석 결과를 가져오는 요청을 한다.-->
+## 2025년 6월 20일
+
+-   **목표**
+    -   로그인 및 회원가입 기능 구현
+    -   마이 페이지 구현
+        -   내 검색 기록 목록 및 개별 검색 기록 조회 페이지 구현
+        -   내 분석 기록 목록 및 개별 분석 기록 조회 페이지 구현
