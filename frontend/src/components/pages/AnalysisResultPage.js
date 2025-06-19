@@ -131,11 +131,10 @@ const AnalysisResultPage = () => {
                             <ReactMarkdown>{analysisResult.result_content || '분석 결과 내용이 없습니다.'}</ReactMarkdown>
                         </div>
                     </div>
-                ) : error ? (
+                ) : error || 'failed' ? (
                     <>
-                        // 분석 실패 또는 찾을 수 없는 경우 (error 메시지 이미 표시되므로 추가 메시지 불필요)
                         <div className="col-span-full text-center text-gray-600 text-lg">
-                            <p>분석 결과를 불러올 수 없습니다.</p>
+                            <p>분석에 실패했습니다. 잠시 후 다시 시도하거나, 다른 뉴스를 선택해주세요.</p>
                         </div>
                     </>
                 ) : (
