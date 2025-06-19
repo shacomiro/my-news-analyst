@@ -133,7 +133,35 @@
 ## 2025년 6월 20일
 
 -   **목표**
-    -   로그인 및 회원가입 기능 구현
-    -   마이 페이지 구현
-        -   내 검색 기록 목록 및 개별 검색 기록 조회 페이지 구현
-        -   내 분석 기록 목록 및 개별 분석 기록 조회 페이지 구현
+    -   **로그인 및 회원가입 기능 구현**:
+        -   **백엔드**:
+            -   사용자 회원가입 (`POST /auth/signup`) 및 로그인 (`POST /auth/login`) API 엔드포인트 구현 (UC3, UC4).
+            -   이메일 형식, 비밀번호 복잡성(8자 이상, 특수문자 포함) 유효성 검증 및 중복 이메일 처리.
+            -   비밀번호 해싱(bcrypt) 및 `users` 테이블에 사용자 정보 저장.
+            -   사용자 인증 (JWT 액세스 토큰 활용) 구현. (MVP 단계에서는 무상태 인증을 목표로 하며, 리프레시 토큰 및 서버 측 세션 관리는 추후 고려)
+            -   로그인 시 `last_login_at` 필드 업데이트.
+            -   유효하지 않은 입력, 인증 실패, 서버/DB 오류 등 예외 처리 구현.
+        -   **프론트엔드**:
+            -   `LoginPage.js` (`/login`) 및 `SignupPage.js` (`/signup`) 컴포넌트 생성 및 라우팅 설정 (`design_principles.md` - 3.9, 3.10; `IA.md` - 7. URL 구조).
+            -   로그인 폼 및 회원가입 폼 UI 구현 (`IA.md` - 8.4. AuthPages).
+            -   백엔드 인증 API 연동 및 성공/실패 시 적절한 UI 피드백 제공.
+            -   UI/UX 원칙(`design_principles.md` - 1.2. 전반적인 스타일, 5. 인터랙션 패턴) 적용.
+    -   **마이 페이지 구현 (회원 전용)**:
+        -   **백엔드**:
+            -   로그인한 사용자의 검색 기록 목록 및 개별 검색 기록 상세 조회 API 구현 (UC5).
+            -   로그인한 사용자의 분석 기록 목록 및 개별 분석 기록 상세 조회 API 구현 (UC6).
+            -   사용자 데이터(`users` 테이블) 및 관련 기록(`search_histories`, `analysis_results`) 조회 로직 구현.
+        -   **프론트엔드**:
+            -   `MyPage.js` (`/my-page`) 컴포넌트 생성 및 라우팅 설정 (`design_principles.md` - 3.4; `IA.md` - 7. URL 구조).
+            -   사용자 정보 요약, '나의 검색 기록 보기', '나의 분석 기록 보기' 링크 UI 구현 (`IA.md` - 5.4, 8.4).
+            -   **내 검색 기록 목록 및 개별 검색 기록 조회 페이지 구현**:
+                -   `SearchHistoryListPage.js` (`/my-page/search`) 컴포넌트 생성 및 라우팅 설정 (`design_principles.md` - 3.5; `IA.md` - 7. URL 구조).
+                -   검색 기록 목록 UI (키워드, 검색 일자) 및 클릭 시 상세 페이지 이동 기능 구현 (`IA.md` - 5.4.1, 8.4).
+                -   `PastSearchDetailPage.js` (`/my-page/search/:search_id`) 컴포넌트 생성 및 라우팅 설정 (`design_principles.md` - 3.7; `IA.md` - 7. URL 구조).
+                -   과거 검색 결과 뉴스 목록 표시 (재사용 가능한 `NewsCard` 컴포넌트 활용), 클라이언트 측 필터링, 재분석 기능 (`IA.md` - 5.5, 8.4).
+            -   **내 분석 기록 목록 및 개별 분석 기록 조회 페이지 구현**:
+                -   `AnalysisHistoryListPage.js` (`/my-page/analysis`) 컴포넌트 생성 및 라우팅 설정 (`design_principles.md` - 3.6; `IA.md` - 7. URL 구조).
+                -   분석 기록 목록 UI (분석 종류, 키워드, 분석 일자) 및 클릭 시 상세 페이지 이동 기능 구현 (`IA.md` - 5.4.2, 8.4).
+                -   `PastAnalysisDetailPage.js` (`/my-page/analysis/:analysis_id`) 컴포넌트 생성 및 라우팅 설정 (`design_principles.md` - 3.8; `IA.md` - 7. URL 구조).
+                -   과거 분석 결과 표시 (재사용 가능한 `AnalysisResultDisplay` 컴포넌트 활용) (`IA.md` - 5.6, 8.4).
+                -   UI/UX 원칙(`design_principles.md` - 1.2. 전반적인 스타일, 5. 인터랙션 패턴) 적용 및 반응형 디자인 고려.
