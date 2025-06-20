@@ -10,7 +10,7 @@ def create_app():
     _app.config.from_object('config.DevelopmentConfig')
 
     # Initialize CORS
-    CORS(_app)
+    CORS(_app, supports_credentials=True, origins=["http://localhost:3000"])
 
     db.init_app(_app)
     migrate.init_app(_app, db)
