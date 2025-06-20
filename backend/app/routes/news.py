@@ -117,4 +117,41 @@ def search_news():
         current_app.logger.error(f"Error during news search: {e}")
         return jsonify({'error': 'An internal server error occurred.'}), 500
 
+# 로그인한 사용자의 검색 기록 조회
+
+
+@news_bp.route('/search-history', methods=['GET'])
+def get_user_search_history():
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({"message": "인증 토큰이 없습니다."}), 401
+
+    auth_result = auth_service.verify_auth_token(token)
+
+    if not auth_result["success"]:
+        return jsonify({"message": auth_result["message"]}), 401
+
+    user_id = auth_result["user_id"]
+
+    try:
+        # 현재 로그인한 user_id에 해당하는 검색 기록을 최신순으로 가져옵니다.
+        search_histories = SearchHistory.query.filter_by(
+            user_id=user_id).order_by(SearchHistory.searched_at.desc()).all()
+
+        history_data = []
+        for history in search_histories:
+            history_data.append({
+                "id": history.id,
+                "keyword": history.keyword,
+                # ISO 8601 형식으로 변환
+                "searched_at": history.searched_at.isoformat() if history.searched_at else None
+            })
+
+        return jsonify({"search_histories": history_data}), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Error fetching search history: {e}")
+        return jsonify({"error": "검색 기록을 가져오는 중 오류가 발생했습니다."}), 500
+
 # 나머지 추가 라우팅

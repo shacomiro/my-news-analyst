@@ -23,3 +23,23 @@ export const searchNews = async (keyword) => {
         throw error;
     }
 };
+
+export const getSearchHistory = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/news/search-history`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include', // HttpOnly 쿠키를 보내기 위해 필요
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch search history');
+        }
+        return data.search_histories;
+    } catch (error) {
+        console.error('Error fetching search history:', error);
+        throw error;
+    }
+};
