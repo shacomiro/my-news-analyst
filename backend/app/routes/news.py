@@ -6,9 +6,12 @@ from app.extensions import db
 from app.models.news_article import NewsArticle
 from app.models.search_history import SearchHistory
 from app.models.search_history_news_article import SearchHistoryNewsArticle
+from app.services.auth.user_auth import AuthService
 from app.services.naver.naver_api_service import NaverApiService
 
 news_bp = Blueprint('news', __name__, url_prefix='/news')
+
+auth_service = AuthService()
 
 # 백엔드 동작 테스트용
 
@@ -36,15 +39,22 @@ def search_news():
 
     naver_api_service = NaverApiService(naver_client_id, naver_client_secret)
 
+    # JWT 토큰을 추출하고 사용자 ID를 확인합니다.
+    user_id = None
+    token = request.cookies.get('access_token')
+    if token:
+        auth_result = auth_service.verify_auth_token(token)
+        if auth_result["success"]:
+            user_id = auth_result["user_id"]
+
     try:
         # 네이버 API를 통해 뉴스 검색 (sort='sim'으로 연관성 순)
         naver_articles = naver_api_service.search_news(keyword, sort='sim')
 
         # 1. 검색 기록 저장
-        # 현재는 user_id = NULL로 처리 (비회원 검색)
-        # 추후 사용자 인증 구현 후 로그인 사용자 ID 연결
+        # user_id를 함께 저장합니다.
         new_search_history = SearchHistory(
-            keyword=keyword, searched_at=datetime.utcnow())
+            keyword=keyword, searched_at=datetime.utcnow(), user_id=user_id)
         db.session.add(new_search_history)
         db.session.commit()
 

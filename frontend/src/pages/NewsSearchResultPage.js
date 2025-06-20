@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import NewsCard from '../components/news/NewsCard'; // NewsCard 컴포넌트 임포트
+import { searchNews } from '../services/newsApi'; // newsApi에서 searchNews 임포트
 
 const NewsSearchResultPage = () => {
     const [searchParams] = useSearchParams();
@@ -46,21 +47,8 @@ const NewsSearchResultPage = () => {
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/news/search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ keyword: keyword.trim() }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || '뉴스 검색에 실패했습니다.');
-                }
-
-                const data = await response.json();
-                console.log('API 응답 데이터:', data);
+                // newsApi.js의 searchNews 함수를 사용
+                const data = await searchNews(keyword.trim());
 
                 if (data && Array.isArray(data.articles)) {
                     setSearchHistoryId(data.search_history_id);
