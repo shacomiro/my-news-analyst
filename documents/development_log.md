@@ -165,3 +165,17 @@
                 -   `PastAnalysisDetailPage.js` (`/my-page/analysis/:analysis_id`) 컴포넌트 생성 및 라우팅 설정 (`design_principles.md` - 3.8; `IA.md` - 7. URL 구조).
                 -   과거 분석 결과 표시 (재사용 가능한 `AnalysisResultDisplay` 컴포넌트 활용) (`IA.md` - 5.6, 8.4).
                 -   UI/UX 원칙(`design_principles.md` - 1.2. 전반적인 스타일, 5. 인터랙션 패턴) 적용 및 반응형 디자인 고려.
+-   **결과**
+    -   **로그인 및 회원가입 기능**:
+        -   **백엔드**: `/auth/signup`, `/auth/login`, `/auth/status`, `/auth/logout` 엔드포인트 구현 완료. JWT를 HttpOnly 쿠키로 설정하고 검증하는 로직 통합 완료.
+        -   **프론트엔드**: `LoginPage.js`, `SignupPage.js` 생성 및 라우팅 완료. `AuthContext`를 통한 전역 인증 상태 관리 및 `authApi.js` 연동 완료. `PrivateRoute` 컴포넌트를 사용하여 보호된 라우트 처리 완료. `localhost` 도메인 통일 및 `SameSite` 정책 관련 문제 해결 완료.
+    -   **마이 페이지 구현 (회원 전용)**:
+        -   **백엔드**: `GET /news/search-history` 및 `GET /news/search-history/<int:search_history_id>` 엔드포인트 구현 완료. `GET /news/analysis-history` 엔드포인트 구현 완료.
+        -   **프론트엔드**: `MyPage.js` 생성 및 라우팅 완료. 나의 검색 기록/분석 기록 탭 UI 구현 완료. 각 기록 카드 클릭 시 상세 페이지(`SearchHistoryDetailPage.js`, `AnalysisHistoryDetailPage.js`)로 이동하는 라우팅 구현 완료. 뒤로 가기 시 탭 상태 유지를 위해 URL 쿼리 파라미터 활용 로직 추가 완료. `NewsCard` 컴포넌트의 체크박스 표시 여부(`showCheckbox` prop) 제어 기능 추가 완료. `SearchHistoryDetailPage` 로딩 시 스켈레톤 UI 적용 완료.
+
+## 추가 개발 사항
+
+    - 응답 데이터 형식 통일
+    - 프론트엔드 뉴스 검색, 뉴스 분석 서비스 로직 분리
+    - 백엔드 뉴스 검색 비즈니스 로직 분리
+    - 직접 쿠키에 접근하는 대신 Authorization 헤더에 담긴 토큰을 활용하기
