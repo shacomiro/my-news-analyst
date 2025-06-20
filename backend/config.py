@@ -9,6 +9,9 @@ class Config:
     SECRET_KEY = os.getenv(
         'SECRET_KEY') or 'a-very-hard-to-guess-default-secret-key'
 
+    # JWT 설정
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+
     # Flask-SQLAlchemy 설정
     # DATABASE_URL 환경 변수로부터 값을 가져와 SQLALCHEMY_DATABASE_URI에 할당
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
