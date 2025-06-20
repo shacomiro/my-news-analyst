@@ -19,3 +19,23 @@ export const getAnalysisHistory = async () => {
         throw error;
     }
 };
+
+export const getAnalysisResult = async (analysisId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/analysis/${analysisId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include', // HttpOnly 쿠키를 보내기 위해 필요
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch analysis result');
+        }
+        return data;
+    } catch (error) {
+        console.error(`Error fetching analysis result for ID ${analysisId}:`, error);
+        throw error;
+    }
+};

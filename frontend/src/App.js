@@ -9,6 +9,7 @@ import SignupPage from './pages/SignupPage';
 import MyPage from './pages/MyPage';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
+import AnalysisHistoryDetailPage from './pages/AnalysisHistoryDetailPage';
 
 function App() {
     return (
@@ -22,7 +23,7 @@ function App() {
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignupPage />} />
                         <Route path="/my-page" element={<MyPage />} />
-                        {/* 다른 경로들은 여기에 추가될 예정입니다. */}
+                        <Route path="/analysis-history/:id" element={<AnalysisHistoryDetailPage />} />
                     </Routes>
                 </AppLayout>
             </AuthProvider>
