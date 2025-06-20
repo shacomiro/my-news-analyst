@@ -64,6 +64,22 @@ def login():
         return jsonify({"message": result["message"]}), 401
 
 
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    response = make_response(jsonify({"message": "로그아웃 되었습니다."}), 200)
+    # HttpOnly 쿠키를 삭제 (만료 시간을 과거로 설정)
+    response.set_cookie(
+        'access_token',
+        '',  # 쿠키 값을 비워줍니다.
+        httponly=True,
+        secure=False,  # 개발 환경에서 HTTP를 위해 False로 임시 설정
+        samesite='Lax',  # 로그인 시와 동일한 SameSite 정책 유지
+        # 쿠키를 즉시 만료시킵니다.
+        expires=datetime.now(timezone.utc) - timedelta(hours=1)
+    )
+    return response
+
+
 @auth_bp.route('/status', methods=['GET'])
 def auth_status():
     # HttpOnly 쿠키에서 access_token 가져오기. JavaScript에서 직접 접근 불가하지만, 요청 시 자동으로 포함됨.

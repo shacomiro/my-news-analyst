@@ -48,3 +48,24 @@ export const login = async (email, password) => {
         return { success: false, message: error.message || '네트워크 오류 또는 서버 응답 문제' };
     }
 };
+
+export const logout = async () => {
+    // 백엔드 로그아웃 API 호출 (HttpOnly 쿠키 삭제)
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || '로그아웃 실패');
+        }
+
+        return { success: true, message: data.message };
+    } catch (error) {
+        console.error('Logout API call failed:', error);
+        return { success: false, message: error.message || '네트워크 오류 또는 서버 응답 문제' };
+    }
+};
