@@ -46,3 +46,15 @@ class JWTUtil:
         except jwt.InvalidTokenError:
             print("유효하지 않은 토큰입니다.")
             return None
+
+
+class JWTManager:
+    def __init__(self):
+        self.jwt_util = None
+
+    def init_app(self, app):
+        secret_key = app.config.get('JWT_SECRET_KEY')
+        if not secret_key:
+            app.logger.error("JWT_SECRET_KEY가 설정되지 않았습니다. JWT 기능을 사용할 수 없습니다.")
+            # 실제 배포 환경에서는 더 강력한 에러 처리가 필요할 수 있습니다.
+        self.jwt_util = JWTUtil(secret_key)
