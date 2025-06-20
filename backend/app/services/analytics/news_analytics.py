@@ -166,3 +166,36 @@ class NewsAnalyticsService:
 
             finally:
                 db.session.remove()  # 스레드 종료 시 세션 정리
+
+    # 특정 사용자의 모든 분석 기록을 조회하여 반환합니다.
+    def get_user_analysis_history(self, user_id: int) -> list[dict]:
+        analysis_records = db.session.query(AnalysisResult).join(
+            SearchHistory, AnalysisResult.search_history_id == SearchHistory.id
+        ).filter(
+            SearchHistory.user_id == user_id
+        ).order_by(AnalysisResult.requested_at.desc()).all()
+
+        history_list = []
+        for analysis_record in analysis_records:
+            search_history = db.session.query(
+                SearchHistory).get(analysis_record.search_history_id)
+            analysis_keyword = search_history.keyword if search_history else None
+
+            selected_news_count = None
+            if analysis_record.status == 'completed':
+                selected_news_count = db.session.query(AnalysisResultNewsArticle).filter(
+                    AnalysisResultNewsArticle.analysis_result_id == analysis_record.id
+                ).count()
+
+            history_list.append({
+                "id": analysis_record.id,
+                "search_history_id": analysis_record.search_history_id,
+                "analysis_type": analysis_record.analysis_type,
+                "requested_at": analysis_record.requested_at.isoformat(),
+                "completed_at": analysis_record.completed_at.isoformat() if analysis_record.completed_at else None,
+                "result_content": analysis_record.result_content,
+                "status": analysis_record.status,
+                "analysis_keyword": analysis_keyword,
+                "selected_news_count": selected_news_count
+            })
+        return history_list

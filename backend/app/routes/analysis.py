@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify, current_app
-from app.extensions import db
 from app.services.analytics.news_analytics import NewsAnalyticsService
+from app.services.auth.user_auth import AuthService
 
 analysis_bp = Blueprint('analysis', __name__, url_prefix='/analysis')
 
-# NewsAnalyticsService 인스턴스를 모듈 레벨에서 한 번만 생성
+auth_service = AuthService()
 news_analytics_service = NewsAnalyticsService()
 
 # 프론트엔드가 백엔드에 뉴스 분석 요청
@@ -50,5 +50,31 @@ def get_analysis_result(analysis_id):
         current_app.logger.error(
             f"Error getting analysis result for ID {analysis_id}: {e}", exc_info=True)
         return jsonify({'message': f'Failed to retrieve analysis result: {str(e)}'}), 500
+
+# 로그인한 사용자의 분석 기록 조회
+
+
+@analysis_bp.route('/analysis-history', methods=['GET'])
+def get_user_analysis_history():
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({"message": "인증 토큰이 없습니다."}), 401
+
+    auth_result = auth_service.verify_auth_token(token)
+
+    if not auth_result["success"]:
+        return jsonify({"message": auth_result["message"]}), 401
+
+    user_id = auth_result["user_id"]
+
+    try:
+        analysis_histories = news_analytics_service.get_user_analysis_history(
+            user_id)
+        return jsonify({"analysis_histories": analysis_histories}), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Error fetching analysis history: {e}")
+        return jsonify({"error": "분석 기록을 가져오는 중 오류가 발생했습니다."}), 500
 
 # 나머지 추가 라우팅
