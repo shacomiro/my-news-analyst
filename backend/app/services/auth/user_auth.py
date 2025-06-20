@@ -62,3 +62,11 @@ class AuthService:
             db.session.rollback()
             print(f"로그인 오류: {e}")
             return {"success": False, "message": "로그인 중 오류가 발생했습니다."}
+
+    def verify_auth_token(self, token):
+        try:
+            decoded_token = self.jwt_util.decode_token(token)
+            return {"success": True, "user_id": decoded_token['user_id'], "email": decoded_token['email']}
+        except Exception as e:
+            print(f"토큰 검증 오류: {e}")
+            return {"success": False, "message": "유효하지 않거나 만료된 토큰입니다."}
