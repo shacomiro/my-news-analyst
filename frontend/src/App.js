@@ -4,6 +4,8 @@ import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
 import NewsSearchResultPage from './pages/NewsSearchResultPage';
 import AnalysisResultPage from './pages/AnalysisResultPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import './App.css';
 
 function App() {
@@ -14,6 +16,8 @@ function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/search" element={<NewsSearchResultPage />} />
                     <Route path="/analysis/:analysis_id" element={<AnalysisResultPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
                     {/* 다른 경로들은 여기에 추가될 예정입니다. */}
                 </Routes>
             </AppLayout>
