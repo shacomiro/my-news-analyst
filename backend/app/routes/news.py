@@ -154,4 +154,56 @@ def get_user_search_history():
         current_app.logger.error(f"Error fetching search history: {e}")
         return jsonify({"error": "검색 기록을 가져오는 중 오류가 발생했습니다."}), 500
 
-# 나머지 추가 라우팅
+
+@news_bp.route('/search-history/<int:search_history_id>', methods=['GET'])
+def get_single_search_history_with_articles(search_history_id):
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({"message": "인증 토큰이 없습니다."}), 401
+
+    auth_result = auth_service.verify_auth_token(token)
+
+    if not auth_result["success"]:
+        return jsonify({"message": auth_result["message"]}), 401
+
+    user_id = auth_result["user_id"]
+
+    try:
+        search_history = SearchHistory.query.filter_by(
+            id=search_history_id, user_id=user_id
+        ).first()
+
+        if not search_history:
+            return jsonify({"message": "해당 검색 기록을 찾을 수 없거나 접근 권한이 없습니다."}), 404
+
+        # 검색 기록에 연결된 뉴스 기사들을 가져옵니다.
+        # order_by를 사용하여 저장된 순서대로 가져옵니다.
+        news_articles_associations = db.session.query(SearchHistoryNewsArticle).filter_by(
+            search_history_id=search_history_id
+        ).order_by(SearchHistoryNewsArticle.order_in_search).all()
+
+        articles_data = []
+        for association in news_articles_associations:
+            article = NewsArticle.query.get(association.news_article_id)
+            if article:
+                articles_data.append({
+                    "id": article.id,
+                    "title": article.title,
+                    "link": article.link,
+                    "publisher": article.publisher,
+                    "pubDate": article.pub_date.isoformat() if article.pub_date else None,
+                    "description": article.description,
+                    "order_in_search": association.order_in_search  # 순서도 함께 반환
+                })
+
+        return jsonify({
+            "id": search_history.id,
+            "keyword": search_history.keyword,
+            "searched_at": search_history.searched_at.isoformat() if search_history.searched_at else None,
+            "articles": articles_data
+        }), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Error fetching single search history: {e}")
+        return jsonify({"error": "검색 기록 상세 정보를 가져오는 중 오류가 발생했습니다."}), 500

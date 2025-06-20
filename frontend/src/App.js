@@ -9,6 +9,7 @@ import SignupPage from './pages/SignupPage';
 import MyPage from './pages/MyPage';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
+import SearchHistoryDetailPage from './pages/SearchHistoryDetailPage';
 import AnalysisHistoryDetailPage from './pages/AnalysisHistoryDetailPage';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignupPage />} />
                         <Route path="/my-page" element={<MyPage />} />
+                        <Route path="/search-history/:id" element={<SearchHistoryDetailPage />} />
                         <Route path="/analysis-history/:id" element={<AnalysisHistoryDetailPage />} />
                     </Routes>
                 </AppLayout>

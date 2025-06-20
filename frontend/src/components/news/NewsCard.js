@@ -1,6 +1,6 @@
 import React from 'react';
 
-const NewsCard = ({ news, onSelect, isSelected }) => {
+const NewsCard = ({ news, onSelect, isSelected, showCheckbox = true }) => {
     const handleCardClick = () => {
         window.open(news.link, '_blank');
     };
@@ -14,18 +14,21 @@ const NewsCard = ({ news, onSelect, isSelected }) => {
                 </p>
                 <p className="text-gray-800 text-base mb-4 line-clamp-3">{news.description}</p>
             </div>
-            <div className="mt-4 flex items-center">
-                <label className="inline-flex items-center cursor-pointer">
-                    <input
-                        type="checkbox"
-                        className="form-checkbox h-5 w-5 text-primary-500 accent-primary-500"
-                        checked={isSelected}
-                        onChange={() => onSelect(news.id)}
-                        onClick={(e) => e.stopPropagation()} // 체크박스 클릭 시 카드 클릭 이벤트 방지
-                    />
-                    <span className="ml-2 text-gray-600">뉴스 선택</span>
-                </label>
-            </div>
+            {/* showCheckbox가 true일 때만 체크박스 렌더링 */}
+            {showCheckbox && (
+                <div className="mt-4 flex items-center">
+                    <label className="inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="form-checkbox h-5 w-5 text-primary-500 accent-primary-500"
+                            checked={isSelected}
+                            onChange={() => onSelect(news.id)}
+                            onClick={(e) => e.stopPropagation()} // 체크박스 클릭 시 카드 클릭 이벤트 방지
+                        />
+                        <span className="ml-2 text-gray-600">뉴스 선택</span>
+                    </label>
+                </div>
+            )}
         </div>
     );
 };
