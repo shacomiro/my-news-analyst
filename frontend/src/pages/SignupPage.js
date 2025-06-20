@@ -1,10 +1,11 @@
 import React from 'react';
 import SignupForm from '../components/auth/SignupForm';
-import { signup } from '../services/authApi';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const SignupPage = () => {
     const navigate = useNavigate();
+    const { signup } = useAuth();
 
     const handleSignup = async ({ email, password }) => {
         const result = await signup(email, password);

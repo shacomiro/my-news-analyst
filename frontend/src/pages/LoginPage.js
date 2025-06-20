@@ -1,19 +1,16 @@
 import React from 'react';
 import LoginForm from '../components/auth/LoginForm';
-import { login } from '../services/authApi';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleLogin = async ({ email, password }) => {
         const result = await login(email, password);
 
         if (result.success) {
-            alert('로그인 성공!');
-            // TODO: 실제 앱에서는 토큰을 안전하게 저장하고 사용자 상태를 업데이트해야 합니다.
-            // 현재는 콘솔에 출력하고 홈으로 리디렉션합니다.
-            console.log('Access Token:', result.accessToken);
             navigate('/'); // 로그인 성공 시 홈 페이지로 이동
         } else {
             alert(`로그인 실패: ${result.message}`);
