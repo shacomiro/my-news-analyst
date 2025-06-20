@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import NewsCard from '../news/NewsCard'; // NewsCard 컴포넌트 임포트
+import NewsCard from '../components/news/NewsCard'; // NewsCard 컴포넌트 임포트
 
 const NewsSearchResultPage = () => {
     const [searchParams] = useSearchParams();

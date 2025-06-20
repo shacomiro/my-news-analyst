@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
-import HomePage from './components/pages/HomePage';
-import NewsSearchResultPage from './components/pages/NewsSearchResultPage';
-import AnalysisResultPage from './components/pages/AnalysisResultPage';
+import HomePage from './pages/HomePage';
+import NewsSearchResultPage from './pages/NewsSearchResultPage';
+import AnalysisResultPage from './pages/AnalysisResultPage';
 import './App.css';
 
 function App() {
