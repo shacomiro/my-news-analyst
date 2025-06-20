@@ -6,6 +6,7 @@ import NewsSearchResultPage from './pages/NewsSearchResultPage';
 import AnalysisResultPage from './pages/AnalysisResultPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import MyPage from './pages/MyPage';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
@@ -20,6 +21,7 @@ function App() {
                         <Route path="/analysis/:analysis_id" element={<AnalysisResultPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignupPage />} />
+                        <Route path="/my-page" element={<MyPage />} />
                         {/* 다른 경로들은 여기에 추가될 예정입니다. */}
                     </Routes>
                 </AppLayout>
