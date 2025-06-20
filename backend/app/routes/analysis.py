@@ -4,6 +4,9 @@ from app.services.analytics.news_analytics import NewsAnalyticsService
 
 analysis_bp = Blueprint('analysis', __name__, url_prefix='/analysis')
 
+# NewsAnalyticsService 인스턴스를 모듈 레벨에서 한 번만 생성
+news_analytics_service = NewsAnalyticsService()
+
 # 프론트엔드가 백엔드에 뉴스 분석 요청
 
 
@@ -17,10 +20,6 @@ def request_analysis():
     analysis_type = data['analysis_type']
     selected_news_article_ids = data['selected_news_article_ids']
     user_id = data.get('user_id')  # 로그인 했을 경우에 사용
-
-    # NewsAnalyticsService 인스턴스 생성 (db.session과 current_app을 전달)
-    news_analytics_service = NewsAnalyticsService(
-        db.session, current_app._get_current_object())
 
     try:
         analysis_id = news_analytics_service.request_news_analysis(
@@ -40,9 +39,6 @@ def request_analysis():
 
 @analysis_bp.route('/<int:analysis_id>', methods=['GET'])
 def get_analysis_result(analysis_id):
-    # NewsAnalyticsService 인스턴스 생성
-    news_analytics_service = NewsAnalyticsService(
-        db.session, current_app._get_current_object())
 
     try:
         result = news_analytics_service.get_analysis_result(analysis_id)
