@@ -4,19 +4,13 @@ from bs4 import BeautifulSoup
 from flask import current_app
 
 
-class NaverApiService:
+class NaverOpenApiUtil:
     NAVER_NEWS_SEARCH_BASE_URL = "https://openapi.naver.com/v1/search/news.json"
 
-    def __init__(self, client_id: str, client_secret: str):
-        if not client_id or not client_secret:
-            raise ValueError(
-                "Naver API client ID and secret must be provided.")
-
-        self.client_id = client_id
-        self.client_secret = client_secret
+    def __init__(self, client_id, client_secret):
         self.headers = {
-            "X-Naver-Client-Id": self.client_id,
-            "X-Naver-Client-Secret": self.client_secret,
+            "X-Naver-Client-Id": client_id,
+            "X-Naver-Client-Secret": client_secret,
         }
 
     def _clean_html_tags(self, text):
@@ -63,3 +57,20 @@ class NaverApiService:
         except ValueError as e:
             print(f"Failed to decode JSON response from Naver API: {e}")
             return []
+
+
+class NaverOpenApiManager:
+    def __init__(self):
+        self.naver_open_api_util = None
+
+    def init_app(self, app):
+        client_id = app.config.get('NAVER_CLIENT_ID')
+        client_secret = app.config.get('NAVER_CLIENT_SECRET')
+        if not client_id:
+            app.logger.error(
+                "NAVER_CLIENT_ID가 설정되지 않았습니다. Nvaer Open API 기능을 사용할 수 없습니다.")
+        if not client_secret:
+            app.logger.error(
+                "NAVER_CLIENT_SECRET가 설정되지 않았습니다. Nvaer Open API 기능을 사용할 수 없습니다.")
+        self.naver_open_api_util = NaverOpenApiUtil(
+            client_id, client_secret)

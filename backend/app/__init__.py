@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 import os
 import logging
-from app.extensions import db, migrate, jwt_manager
+from app.extensions import db, migrate, jwt_manager, naver_open_api_manager
 
 
 def create_app():
@@ -15,6 +15,7 @@ def create_app():
     db.init_app(_app)
     migrate.init_app(_app, db)
     jwt_manager.init_app(_app)
+    naver_open_api_manager.init_app(_app)
 
     # 모델을 db.init_app() 호출 후에 임포트하여 순환 임포트 방지 및 Flask-Migrate 인식
     with _app.app_context():  # 앱 컨텍스트 내에서 모델 임포트

@@ -1,24 +1,12 @@
 from flask import Blueprint, request, jsonify, current_app
-from datetime import datetime
-from sqlalchemy.exc import IntegrityError
 
-from app.extensions import db
-from app.models.news_article import NewsArticle
-from app.models.search_history import SearchHistory
-from app.models.search_history_news_article import SearchHistoryNewsArticle
 from app.services.auth.user_auth import AuthService
-from app.services.naver.naver_api_service import NaverApiService
+from app.services.news.news_service import NewsService
 
 news_bp = Blueprint('news', __name__, url_prefix='/news')
 
 auth_service = AuthService()
-
-# 백엔드 동작 테스트용
-
-
-@news_bp.route('/')
-def hello_my_news_analyst():
-    return 'This is My News Analyst Backend'
+news_service = NewsService()
 
 # 프론트엔드가 특정 키워드에 대한 뉴스 검색 요청
 
@@ -37,8 +25,6 @@ def search_news():
     if not naver_client_id or not naver_client_secret:
         return jsonify({'error': 'Naver API credentials not configured.'}), 500
 
-    naver_api_service = NaverApiService(naver_client_id, naver_client_secret)
-
     # JWT 토큰을 추출하고 사용자 ID를 확인합니다.
     user_id = None
     token = request.cookies.get('access_token')
@@ -47,75 +33,10 @@ def search_news():
         if auth_result["success"]:
             user_id = auth_result["user_id"]
 
-    try:
-        # 네이버 API를 통해 뉴스 검색 (sort='sim'으로 연관성 순)
-        naver_articles = naver_api_service.search_news(keyword, sort='sim')
+        response_articles, search_history_id = news_service.search_and_save_news(
+            keyword, user_id)
 
-        # 1. 검색 기록 저장
-        # user_id를 함께 저장합니다.
-        new_search_history = SearchHistory(
-            keyword=keyword, searched_at=datetime.utcnow(), user_id=user_id)
-        db.session.add(new_search_history)
-        db.session.commit()
-
-        # 2. 뉴스 기사 저장 및 검색 기록과 연결
-        saved_news_articles = []
-        for order, item in enumerate(naver_articles):
-            existing_article = NewsArticle.query.filter_by(
-                link=item['link']).first()
-
-            if existing_article:
-                # 이미 존재하는 뉴스 기사는 재활용
-                news_article = existing_article
-            else:
-                # 새 뉴스 기사는 DB에 추가
-                news_article = NewsArticle(
-                    title=item['title'],
-                    link=item['link'],
-                    publisher=item['publisher'],
-                    pub_date=datetime.strptime(
-                        item['pubDate'], '%a, %d %b %Y %H:%M:%S +0900') if item.get('pubDate') else None,
-                    description=item['description']
-                )
-                db.session.add(news_article)
-                try:
-                    db.session.flush()  # 현재 트랜잭션에서 news_article의 ID를 얻기 위해 flush
-                except IntegrityError:
-                    db.session.rollback()  # 중복 링크 등으로 인한 무결성 오류 발생 시 롤백
-                    current_app.logger.warning(
-                        f"Duplicate news article link found and skipped: {item['link']}")
-                    continue  # 이 뉴스 기사는 건너뛰고 다음 기사로
-
-            # search_history_news_articles 테이블에 관계 저장
-            search_history_news_article = SearchHistoryNewsArticle(
-                search_history_id=new_search_history.id,
-                news_article_id=news_article.id,
-                order_in_search=order + 1  # 1부터 시작하는 순서
-            )
-            db.session.add(search_history_news_article)
-            # 최종 응답을 위해 저장된 뉴스 기사 목록에 추가
-            saved_news_articles.append(news_article)
-
-        db.session.commit()  # 모든 관계를 한 번에 커밋
-
-        # 클린된 뉴스 기사 목록 반환
-        response_articles = []
-        for article in saved_news_articles:
-            response_articles.append({
-                "id": article.id,
-                "title": article.title,
-                "link": article.link,
-                "publisher": article.publisher,
-                "pubDate": article.pub_date.isoformat() if article.pub_date else None,
-                "description": article.description
-            })
-
-        return jsonify({'message': 'News search successful', 'articles': response_articles, 'search_history_id': new_search_history.id}), 200
-
-    except Exception as e:
-        db.session.rollback()  # 오류 발생 시 트랜잭션 롤백
-        current_app.logger.error(f"Error during news search: {e}")
-        return jsonify({'error': 'An internal server error occurred.'}), 500
+        return jsonify({'message': 'News search successful', 'articles': response_articles, 'search_history_id': search_history_id}), 200
 
 # 로그인한 사용자의 검색 기록 조회
 
@@ -134,25 +55,9 @@ def get_user_search_history():
 
     user_id = auth_result["user_id"]
 
-    try:
-        # 현재 로그인한 user_id에 해당하는 검색 기록을 최신순으로 가져옵니다.
-        search_histories = SearchHistory.query.filter_by(
-            user_id=user_id).order_by(SearchHistory.searched_at.desc()).all()
+    history_data = news_service.get_user_search_history(user_id)
 
-        history_data = []
-        for history in search_histories:
-            history_data.append({
-                "id": history.id,
-                "keyword": history.keyword,
-                # ISO 8601 형식으로 변환
-                "searched_at": history.searched_at.isoformat() if history.searched_at else None
-            })
-
-        return jsonify({"search_histories": history_data}), 200
-
-    except Exception as e:
-        current_app.logger.error(f"Error fetching search history: {e}")
-        return jsonify({"error": "검색 기록을 가져오는 중 오류가 발생했습니다."}), 500
+    return jsonify({"search_histories": history_data}), 200
 
 
 @news_bp.route('/search-history/<int:search_history_id>', methods=['GET'])
@@ -169,41 +74,10 @@ def get_single_search_history_with_articles(search_history_id):
 
     user_id = auth_result["user_id"]
 
-    try:
-        search_history = SearchHistory.query.filter_by(
-            id=search_history_id, user_id=user_id
-        ).first()
+    search_history_data, error_message = news_service.get_single_search_history_with_articles(
+        search_history_id, user_id)
 
-        if not search_history:
-            return jsonify({"message": "해당 검색 기록을 찾을 수 없거나 접근 권한이 없습니다."}), 404
+    if error_message:
+        return jsonify({"message": error_message}), 404
 
-        # 검색 기록에 연결된 뉴스 기사들을 가져옵니다.
-        # order_by를 사용하여 저장된 순서대로 가져옵니다.
-        news_articles_associations = db.session.query(SearchHistoryNewsArticle).filter_by(
-            search_history_id=search_history_id
-        ).order_by(SearchHistoryNewsArticle.order_in_search).all()
-
-        articles_data = []
-        for association in news_articles_associations:
-            article = NewsArticle.query.get(association.news_article_id)
-            if article:
-                articles_data.append({
-                    "id": article.id,
-                    "title": article.title,
-                    "link": article.link,
-                    "publisher": article.publisher,
-                    "pubDate": article.pub_date.isoformat() if article.pub_date else None,
-                    "description": article.description,
-                    "order_in_search": association.order_in_search  # 순서도 함께 반환
-                })
-
-        return jsonify({
-            "id": search_history.id,
-            "keyword": search_history.keyword,
-            "searched_at": search_history.searched_at.isoformat() if search_history.searched_at else None,
-            "articles": articles_data
-        }), 200
-
-    except Exception as e:
-        current_app.logger.error(f"Error fetching single search history: {e}")
-        return jsonify({"error": "검색 기록 상세 정보를 가져오는 중 오류가 발생했습니다."}), 500
+    return jsonify(search_history_data), 200
