@@ -12,16 +12,23 @@ load_dotenv()
 
 class GoogleGemini:
     def __init__(self):
-        # Gemini API 키 등록
-        gemini_api_key = os.getenv('GOOGLE_GEMINI_API_KEY')
+        self.model = None  # 모델 초기화를 init_app으로 이동
+
+    def init_app(self, app):
+        # JWT_SECRET_KEY 대신 GOOGLE_GEMINI_API_KEY 사용
+        gemini_api_key = app.config.get('GOOGLE_GEMINI_API_KEY')
         if not gemini_api_key:
             raise ValueError("GOOGLE_GEMINI_API_KEY 환경 변수가 설정되지 않았습니다.")
-        genai.configure(api_key=gemini_api_key)
-        self.model = genai.GenerativeModel('models/gemini-2.5-flash')
-        # self.check_models()
+        else:
+            genai.configure(api_key=gemini_api_key)
+            self.model = genai.GenerativeModel('models/gemini-2.5-flash')
+            # self.check_models() # 필요한 경우 init_app 후에 호출
 
     # 사용 가능한 Gemini 모델 목록 확인
     def check_models(self):
+        if not self.model:
+            print("Gemini 모델이 초기화되지 않았습니다.")
+            return
         print("사용 가능한 Gemini 모델:")
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:
@@ -55,6 +62,9 @@ class GoogleGemini:
 
     # 뉴스 기사를 분석하고 결과를 반환
     def analyze_news(self, news_articles: list[dict], keyword: str, analysis_type: str) -> str:
+        if not self.model:
+            return "오류: Gemini 모델이 초기화되지 않았습니다. API 키 설정을 확인해주세요."
+
         if not news_articles:
             return "분석할 뉴스 기사가 제공되지 않았습니다."
 

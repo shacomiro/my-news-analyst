@@ -4,18 +4,15 @@ from datetime import datetime
 
 from flask import Flask, current_app
 
-from app.services.google.google_gemini import GoogleGemini
 from app.models.analysis_result import AnalysisResult
 from app.models.news_article import NewsArticle
 from app.models.search_history import SearchHistory
 from app.models.search_history_news_article import SearchHistoryNewsArticle
 from app.models.analysis_result_news_article import AnalysisResultNewsArticle
-from app.extensions import db  # db 객체 임포트
+from app.extensions import db, google_gemini
 
 
 class NewsAnalyticsService:
-    def __init__(self):
-        self.gemini_service = GoogleGemini()
 
     # 뉴스 분석 요청을 시작하고, 진행 중인 분석 결과를 DB에 기록한 후 분석 ID를 반환. 실제 AI 분석은 백그라운드 스레드에서 수행.
     def request_news_analysis(self, search_history_id: int, analysis_type: str, selected_news_article_ids: list[int], user_id: int = None) -> int:
@@ -126,7 +123,7 @@ class NewsAnalyticsService:
                 analysis_keyword = search_history.keyword  # 검색 키워드 가져오기
 
                 # 2. Google Gemini 서비스 호출
-                ai_analysis_content = self.gemini_service.analyze_news(
+                ai_analysis_content = google_gemini.analyze_news(
                     news_articles=news_articles_data,
                     keyword=analysis_keyword,
                     analysis_type=analysis_record.analysis_type,
